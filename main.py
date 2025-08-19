@@ -1,0 +1,40 @@
+import os
+from dotenv import load_dotenv
+from pages.login_page import Login
+from pages.home_page import HomePage
+from pages.Slot_Providers import SlotProvider
+from pages.game_page import Game_Click
+
+load_dotenv(override=True)
+
+BASE_URL = os.getenv("BASE_URL")
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
+
+if __name__ == "__main__":
+    # Step 1: Login Page actions
+    login_page = Login(BASE_URL)
+    login_page.Start_Browser()
+    login_page.launch_url()
+    print(f"USERNAME from env: {USERNAME!r}")
+    login_page.login(USERNAME, PASSWORD)
+    login_page.Close_Popupbtnscal()
+    
+    # Step 2: Home Page actions
+    home_page = HomePage()
+    home_page.page = login_page.page  # reuse same page
+    home_page.click_Slot()
+    home_page.home_slot()
+    
+    #Step3:- Provider game testing
+    Slot_Providers = SlotProvider()
+    Slot_Providers.page = login_page.page  # reuse same page
+    Slot_Providers.List_Provisers()
+    
+    #Step4:- Gameclick close testing
+    # game_page = Game_Click()
+    # Slot_Providers.page = login_page.page  # reuse same page
+    # game_page.GamesbtnClick()
+    
+    # Step 3: Close browser
+    login_page.close_Browser()
