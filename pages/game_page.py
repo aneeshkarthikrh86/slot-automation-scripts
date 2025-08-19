@@ -133,7 +133,7 @@ class Game_Click(BaseClass):
                             print(f"❌ Failed: {Gamename}")
                         except Exception:
                             print(f"❌ Failed (go_back timeout, clearing cache): {Gamename}")
-                            self.context.clear_cookies()
+                            self.page.go_back()
                             try:
                                 self.page.evaluate("localStorage.clear()")
                                 self.page.evaluate("sessionStorage.clear()")
