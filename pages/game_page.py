@@ -106,41 +106,71 @@ class Game_Click(BaseClass):
                     game_button_locator.wait_for(state="visible", timeout=12000)
                     time.sleep(2.5)
                     game_button_locator.click()
-
                     close_btn = "//button/*[@class='w-5 h-5 game_header_close_btn']"
                     toast_msg = "//div[@class='toast-message text-sm' and text()='Something went wrong. Try again later.']"
 
                     # Wait for either close or toast
                     max_wait = 20
-                    for _ in range(max_wait):
+                    interval = 1
+                    for _ in range(int(max_wait / interval)):
                         if self.page.is_visible(close_btn) or self.page.is_visible(toast_msg):
                             break
-                        time.sleep(1)
+                        time.sleep(interval)
                     else:
-                        # Timeout → full reset + retry same game
-                        print(f"⚠ Timeout on {Gamename}, resetting and retrying...")
+                        print(f"⚠ Timeout waiting for close button or toast for {Gamename} → Resetting & retrying")
+
+                        # Clear + re-login + go back to provider/page + retry this same game
                         self.reset_and_recover(provider_name, current_page, indexg)
+
+                        # After retry, continue with next game
                         continue
 
-                    # Handle failure toast
+                    # Handle success/failure
                     if self.page.is_visible(toast_msg):
-                        print(f"❌ Failed: {Gamename} → retrying with reset")
-                        self.reset_and_recover(provider_name, current_page, indexg)
-                        continue
+                        failure_count += 1
+                        try:
+                            self.page.wait_for_selector("//button[text()='Back To Home']", timeout=5000).click()
+                            print(f"❌ Failed: {Gamename}")
+                        except Exception:
+                            print(f"❌ Failed (go_back timeout, clearing cache): {Gamename}")
+                            self.context.clear_cookies()
+                            try:
+                                self.page.evaluate("localStorage.clear()")
+                                self.page.evaluate("sessionStorage.clear()")
+                            except:
+                                pass
+                            if provider_name:
+                                self.reset_and_recover(provider_name, current_page)
+                    else:
+                        time.sleep(10)
+                        try:
+                            self.page.wait_for_selector(close_btn, timeout=5000).click()
+                            print(f"✅ Success: {Gamename}")
+                        except Exception:
+                            print(f"✅ Success (go_back timeout, clearing cache): {Gamename}")
+                            self.context.clear_cookies()
+                            try:
+                                self.page.evaluate("localStorage.clear()")
+                                self.page.evaluate("sessionStorage.clear()")
+                            except:
+                                pass
+                            if provider_name:
+                                self.reset_and_recover(provider_name, current_page)
 
-                    # Handle success
-                    if self.page.is_visible(close_btn):
-                        self.page.click(close_btn)
-                        print(f"✅ Success: {Gamename}")
-
-                    # Ensure we're still on the correct page
+                    # Ensure we're on correct page
+                    self.page.wait_for_selector("//button[text()='Logout']", timeout=12000)
+                    time.sleep(2)
                     if current_page > 1:
                         self.click_page_number(current_page)
 
+                    # Stop if too many failures
+                    if failure_count >= 15:
+                        print("❌ Too many failures. Skipping to next provider...")
+                        return
+
                 except Exception as e:
-                    print(f"⚠ Error on {Gamename}: {e} → resetting and retrying...")
+                    print(f"Error on {Gamename}: {e}")
                     self.reset_and_recover(provider_name, current_page, indexg)
-                    continue
 
             # Go to next page
             if current_page < last_page_num:
