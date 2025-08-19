@@ -2,7 +2,7 @@ import time
 from tests.base_page import BaseClass
 from pages.game_page import Game_Click
 
-class SlotProvider(BaseClass):
+class FishProvider(BaseClass):
     def List_Provisers(self):
         time.sleep(1)
         Provider_btns = self.page.query_selector_all("//div[@class='mt-5 flex items-center slot_btn_container w-full overflow-auto light-scrollbar-h pb-[10px]']//button")
