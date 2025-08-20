@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 from pages.login_page import Login
 from pages.home_page import HomePage
 from pages.Slot_Providers import SlotProvider
-from pages.Fishing_Provider import FishProvider
-from pages.game_page import Game_Click
 
 load_dotenv(override=True)
 
@@ -13,7 +11,7 @@ USERNAME = os.getenv("USERNAME")
 PASSWORD = os.getenv("PASSWORD")
 
 if __name__ == "__main__":
-    # Step 1: Login Page actions
+    # Step 1: Start and login
     login_page = Login(BASE_URL)
     login_page.Start_Browser()
     login_page.launch_url()
@@ -21,16 +19,22 @@ if __name__ == "__main__":
     login_page.login(USERNAME, PASSWORD)
     login_page.Close_Popupbtnscal()
     
-    # Step 2: Home Page actions
+    # Step 2: Go to Slots
     home_page = HomePage()
     home_page.page = login_page.page  # reuse same page
     home_page.click_Slot()
     home_page.home_slot()
     
-    #Step3:- Provider game testing
-    Slot_Providers = SlotProvider()
-    Slot_Providers.page = login_page.page  # reuse same page
-    Slot_Providers.List_Provisers()
+    # Step 3: Provider + Game testing
+    slot_providers = SlotProvider()
+    slot_providers.page = login_page.page   # reuse same page
+    slot_providers.context = login_page.context  # give SlotProvider context (for clear cookies)
+    slot_providers.baseUrl = BASE_URL       # needed for reset_and_recover()
+    slot_providers.username = USERNAME      # pass login creds
+    slot_providers.password = PASSWORD
     
-    # Step 3: Close browser
+    # run through providers/games
+    slot_providers.List_Provisers()
+    
+    # Step 4: Close browser
     login_page.close_Browser()
