@@ -20,7 +20,7 @@ class SlotProvider:
                 print("⚠ Could not open slot providers menu")
                 return
 
-        providers = self.page.query_selector_all("//div[@class='provider-list']//button")
+        providers = self.page.query_selector_all("//div[@class='mt-5 flex items-center slot_btn_container w-full overflow-auto light-scrollbar-h pb-[10px]']//button")
         for provider in providers:
             provider_name = provider.text_content().strip()
             print(f"Provider: {provider_name}")
